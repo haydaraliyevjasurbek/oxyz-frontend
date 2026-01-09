@@ -243,6 +243,7 @@ export default function StatsPage() {
                               alt="icon"
                               className="h-10 w-10 rounded-xl border border-slate-800/60 bg-slate-950/30 object-contain"
                               loading="lazy"
+                              priority="high"
                             />
                           ) : (
                             <div className="h-10 w-10 rounded-xl border border-dashed border-slate-700/60 bg-slate-950/10" />

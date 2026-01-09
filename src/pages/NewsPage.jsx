@@ -259,6 +259,7 @@ export default function NewsPage() {
                                   alt="news"
                                   className="max-h-44 w-full rounded-xl border border-slate-800/60 object-cover"
                                   loading="lazy"
+                                  priority="high"
                                 />
                               </div>
                             ) : null}
