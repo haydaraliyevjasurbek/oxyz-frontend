@@ -1,7 +1,7 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { apiFetch } from '../api'
+import { apiFetch, apiUrl } from '../api'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import EmptyState from '../components/ui/EmptyState'
@@ -14,6 +14,7 @@ import Textarea from '../components/ui/Textarea'
 export default function NewsPage() {
   const navigate = useNavigate()
   const reduceMotion = useReducedMotion()
+  const MotionDiv = motion.div
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -233,7 +234,7 @@ export default function NewsPage() {
               <div className="space-y-3">
                 <AnimatePresence initial={false}>
                   {items.map((n) => (
-                    <motion.div
+                    <MotionDiv
                       key={n.id}
                       layout
                       initial={reduceMotion ? false : { opacity: 0, y: 8 }}
@@ -254,7 +255,7 @@ export default function NewsPage() {
                             {n.imageMimeType ? (
                               <div className="mt-3">
                                 <img
-                                  src={`/api/news/${n.id}/image?v=${encodeURIComponent(n.updatedAt || '')}`}
+                                  src={apiUrl(`/api/news/${n.id}/image?v=${encodeURIComponent(n.updatedAt || '')}`)}
                                   alt="news"
                                   className="max-h-44 w-full rounded-xl border border-slate-800/60 object-cover"
                                   loading="lazy"
@@ -273,7 +274,7 @@ export default function NewsPage() {
                           </div>
                         </div>
                       </div>
-                    </motion.div>
+                    </MotionDiv>
                   ))}
                 </AnimatePresence>
               </div>

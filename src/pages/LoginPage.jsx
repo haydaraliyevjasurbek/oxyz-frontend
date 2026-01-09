@@ -1,10 +1,11 @@
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import ErrorBanner from '../components/ui/ErrorBanner'
 import Input from '../components/ui/Input'
+import { apiFetch } from '../api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -20,7 +21,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await apiFetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ login, password }),
@@ -51,7 +52,7 @@ export default function LoginPage() {
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 py-10">
-        <motion.div
+        <Motion.div
           initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
           animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -99,7 +100,7 @@ export default function LoginPage() {
               </form>
             </div>
           </Card>
-        </motion.div>
+        </Motion.div>
       </div>
     </div>
   )

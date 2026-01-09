@@ -1,7 +1,7 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { apiFetch } from '../api'
+import { apiFetch, apiUrl } from '../api'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import EmptyState from '../components/ui/EmptyState'
@@ -14,6 +14,7 @@ import Textarea from '../components/ui/Textarea'
 export default function ServicesPage() {
   const navigate = useNavigate()
   const reduceMotion = useReducedMotion()
+  const MotionDiv = motion.div
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -203,7 +204,7 @@ export default function ServicesPage() {
               <div className="space-y-3">
                 <AnimatePresence initial={false}>
                   {services.map((s) => (
-                    <motion.div
+                    <MotionDiv
                       key={s.id}
                       layout
                       initial={reduceMotion ? false : { opacity: 0, y: 8 }}
@@ -226,7 +227,7 @@ export default function ServicesPage() {
                             {s.imageMimeType ? (
                               <div className="mt-3">
                                 <img
-                                  src={`/api/services/${s.id}/image?v=${encodeURIComponent(s.updatedAt || '')}`}
+                                  src={apiUrl(`/api/services/${s.id}/image?v=${encodeURIComponent(s.updatedAt || '')}`)}
                                   alt="service"
                                   className="max-h-40 w-full rounded-xl border border-slate-800/60 object-cover"
                                   loading="lazy"
@@ -245,7 +246,7 @@ export default function ServicesPage() {
                           </div>
                         </div>
                       </div>
-                    </motion.div>
+                    </MotionDiv>
                   ))}
                 </AnimatePresence>
               </div>

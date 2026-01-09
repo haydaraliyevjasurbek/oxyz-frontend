@@ -1,7 +1,7 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { apiFetch } from '../api'
+import { apiFetch, apiUrl } from '../api'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import EmptyState from '../components/ui/EmptyState'
@@ -13,6 +13,7 @@ import Skeleton from '../components/ui/Skeleton'
 export default function StatsPage() {
   const navigate = useNavigate()
   const reduceMotion = useReducedMotion()
+  const MotionDiv = motion.div
 
   const [stats, setStats] = useState([])
   const [loading, setLoading] = useState(true)
@@ -226,7 +227,7 @@ export default function StatsPage() {
               <div className="space-y-3">
                 <AnimatePresence initial={false}>
                   {stats.map((s) => (
-                    <motion.div
+                    <MotionDiv
                       key={s.id}
                       layout
                       initial={reduceMotion ? false : { opacity: 0, y: 8 }}
@@ -238,7 +239,7 @@ export default function StatsPage() {
                         <div className="flex min-w-0 items-start gap-3">
                           {s.iconMimeType ? (
                             <img
-                              src={`/api/stats/${s.id}/icon?v=${encodeURIComponent(s.updatedAt || '')}`}
+                              src={apiUrl(`/api/stats/${s.id}/icon?v=${encodeURIComponent(s.updatedAt || '')}`)}
                               alt="icon"
                               className="h-10 w-10 rounded-xl border border-slate-800/60 bg-slate-950/30 object-contain"
                               loading="lazy"
@@ -262,7 +263,7 @@ export default function StatsPage() {
                           </Button>
                         </div>
                       </div>
-                    </motion.div>
+                    </MotionDiv>
                   ))}
                 </AnimatePresence>
               </div>
