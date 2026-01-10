@@ -1,4 +1,4 @@
-import { AnimatePresence, useReducedMotion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import Modal from '../components/ui/Modal'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -24,7 +24,6 @@ const emptyForm = {
 
 export default function QuoteRequestsPage() {
   const navigate = useNavigate()
-  const reduceMotion = useReducedMotion()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
