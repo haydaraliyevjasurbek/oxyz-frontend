@@ -1,4 +1,5 @@
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, useReducedMotion } from 'framer-motion'
+import Modal from '../components/ui/Modal'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiFetch } from '../api'
@@ -29,6 +30,7 @@ export default function QuoteRequestsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ ...emptyForm })
+  const [modalOpen, setModalOpen] = useState(false)
 
   const isEditing = useMemo(() => form.id != null, [form.id])
 
@@ -58,6 +60,7 @@ export default function QuoteRequestsPage() {
 
   function startCreate() {
     setForm({ ...emptyForm })
+    setModalOpen(true)
   }
 
   function startEdit(q) {
@@ -71,6 +74,7 @@ export default function QuoteRequestsPage() {
       name: q.name || '',
       phone: q.phone || '',
     })
+    setModalOpen(true)
   }
 
   async function submit(e) {
@@ -99,7 +103,8 @@ export default function QuoteRequestsPage() {
         throw new Error((await res.json().catch(() => ({}))).message || 'Save failed')
       }
 
-      startCreate()
+      setModalOpen(false)
+      setForm({ ...emptyForm })
       await load()
     } catch (err) {
       if (String(err.message).includes('Unauthorized')) {
@@ -137,129 +142,119 @@ export default function QuoteRequestsPage() {
         title="Quote Requests"
         subtitle="View and manage quote requests from users."
         right={
-          <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="primary" size="sm" onClick={startCreate}>
+              Create Request
+            </Button>
+            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
+              Refresh
+            </Button>
+          </div>
         }
       />
 
       <ErrorBanner message={error} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <div className="border-b border-slate-800/60 px-5 py-4">
-            <div className="text-sm font-semibold text-slate-100">
-              {isEditing ? `Edit request #${form.id}` : 'Create request'}
-            </div>
-            <div className="mt-1 text-xs text-slate-400">All fields are required.</div>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={isEditing ? `Edit request #${form.id}` : 'Create request'}>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-1">
+            <label htmlFor="qr-from" className="text-xs font-medium text-slate-300">
+              Откуда
+            </label>
+            <Input
+              id="qr-from"
+              value={form.from}
+              onChange={(e) => setForm((p) => ({ ...p, from: e.target.value }))}
+              placeholder="City / Location"
+              required
+            />
           </div>
-
-          <form onSubmit={submit} className="space-y-4 px-5 py-5">
+          <div className="space-y-1">
+            <label htmlFor="qr-to" className="text-xs font-medium text-slate-300">
+              Куда
+            </label>
+            <Input
+              id="qr-to"
+              value={form.to}
+              onChange={(e) => setForm((p) => ({ ...p, to: e.target.value }))}
+              placeholder="City / Location"
+              required
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="qr-cargo" className="text-xs font-medium text-slate-300">
+              Какой груз
+            </label>
+            <Input
+              id="qr-cargo"
+              value={form.cargo}
+              onChange={(e) => setForm((p) => ({ ...p, cargo: e.target.value }))}
+              placeholder="Cargo"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
-              <label htmlFor="qr-from" className="text-xs font-medium text-slate-300">
-                Откуда
+              <label htmlFor="qr-weight" className="text-xs font-medium text-slate-300">
+                Вес груза
               </label>
               <Input
-                id="qr-from"
-                value={form.from}
-                onChange={(e) => setForm((p) => ({ ...p, from: e.target.value }))}
-                placeholder="City / Location"
+                id="qr-weight"
+                value={form.weight}
+                onChange={(e) => setForm((p) => ({ ...p, weight: e.target.value }))}
+                placeholder="e.g. 1500 kg"
                 required
               />
             </div>
-
             <div className="space-y-1">
-              <label htmlFor="qr-to" className="text-xs font-medium text-slate-300">
-                Куда
+              <label htmlFor="qr-transport" className="text-xs font-medium text-slate-300">
+                Вид транспорта
               </label>
               <Input
-                id="qr-to"
-                value={form.to}
-                onChange={(e) => setForm((p) => ({ ...p, to: e.target.value }))}
-                placeholder="City / Location"
+                id="qr-transport"
+                value={form.transport}
+                onChange={(e) => setForm((p) => ({ ...p, transport: e.target.value }))}
+                placeholder="Truck / Air / Rail"
                 required
               />
             </div>
-
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
-              <label htmlFor="qr-cargo" className="text-xs font-medium text-slate-300">
-                Какой груз
+              <label htmlFor="qr-name" className="text-xs font-medium text-slate-300">
+                Имя
               </label>
               <Input
-                id="qr-cargo"
-                value={form.cargo}
-                onChange={(e) => setForm((p) => ({ ...p, cargo: e.target.value }))}
-                placeholder="Cargo"
+                id="qr-name"
+                value={form.name}
+                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                placeholder="Full name"
                 required
               />
             </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label htmlFor="qr-weight" className="text-xs font-medium text-slate-300">
-                  Вес груза
-                </label>
-                <Input
-                  id="qr-weight"
-                  value={form.weight}
-                  onChange={(e) => setForm((p) => ({ ...p, weight: e.target.value }))}
-                  placeholder="e.g. 1500 kg"
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <label htmlFor="qr-transport" className="text-xs font-medium text-slate-300">
-                  Вид транспорта
-                </label>
-                <Input
-                  id="qr-transport"
-                  value={form.transport}
-                  onChange={(e) => setForm((p) => ({ ...p, transport: e.target.value }))}
-                  placeholder="Truck / Air / Rail"
-                  required
-                />
-              </div>
+            <div className="space-y-1">
+              <label htmlFor="qr-phone" className="text-xs font-medium text-slate-300">
+                Номер телефона
+              </label>
+              <Input
+                id="qr-phone"
+                value={form.phone}
+                onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                placeholder="+998..."
+                required
+              />
             </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label htmlFor="qr-name" className="text-xs font-medium text-slate-300">
-                  Имя
-                </label>
-                <Input
-                  id="qr-name"
-                  value={form.name}
-                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="Full name"
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <label htmlFor="qr-phone" className="text-xs font-medium text-slate-300">
-                  Номер телефона
-                </label>
-                <Input
-                  id="qr-phone"
-                  value={form.phone}
-                  onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-                  placeholder="+998..."
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button type="submit" loading={saving}>
-                {isEditing ? 'Save changes' : 'Create'}
-              </Button>
-              {isEditing ? (
-                <Button type="button" variant="secondary" onClick={startCreate} disabled={saving}>
-                  Cancel
-                </Button>
-              ) : null}
-            </div>
-          </form>
-        </Card>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="submit" loading={saving}>
+              {isEditing ? 'Save changes' : 'Create'}
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => setModalOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
         <Card>
           <div className="flex items-center justify-between gap-3 border-b border-slate-800/60 px-5 py-4">
@@ -267,9 +262,6 @@ export default function QuoteRequestsPage() {
               <div className="text-sm font-semibold text-slate-100">List</div>
               <div className="mt-1 text-xs text-slate-400">{items.length} items</div>
             </div>
-            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-              Refresh
-            </Button>
           </div>
 
           <div className="space-y-3 px-5 py-5">
@@ -285,15 +277,11 @@ export default function QuoteRequestsPage() {
               <div className="space-y-3">
                 <AnimatePresence initial={false}>
                   {items.map((q) => (
-                    <motion.div
+                    <div
                       key={q.id}
-                      layout
-                      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                      transition={{ duration: 0.16, ease: 'easeOut' }}
+                      style={{ position: 'relative' }}
                     >
-                      <div className="rounded-2xl border border-slate-800/60 bg-slate-950/20 p-4">
+                      <div className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0 flex-1">
                             <div className="text-xs text-slate-500">#{q.id}</div>
@@ -313,8 +301,7 @@ export default function QuoteRequestsPage() {
                               </div>
                             ) : null}
                           </div>
-
-                          <div className="flex shrink-0 flex-col gap-2">
+                          <div className="flex shrink-0 flex-row gap-2">
                             <Button size="sm" variant="secondary" onClick={() => startEdit(q)}>
                               Edit
                             </Button>
@@ -324,7 +311,7 @@ export default function QuoteRequestsPage() {
                           </div>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </AnimatePresence>
               </div>
@@ -332,6 +319,5 @@ export default function QuoteRequestsPage() {
           </div>
         </Card>
       </div>
-    </div>
   )
 }

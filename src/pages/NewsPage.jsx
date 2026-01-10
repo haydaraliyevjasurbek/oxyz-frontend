@@ -1,4 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import Modal from '../components/ui/Modal'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiFetch, apiUrl } from '../api'
@@ -28,6 +29,7 @@ export default function NewsPage() {
     content: '',
     image: null,
   })
+  const [modalOpen, setModalOpen] = useState(false)
 
   const isEditing = useMemo(() => form.id != null, [form.id])
 
@@ -57,6 +59,7 @@ export default function NewsPage() {
 
   function startCreate() {
     setForm({ id: null, publishedAt: '', title: '', summary: '', content: '', image: null })
+    setModalOpen(true)
   }
 
   function startEdit(n) {
@@ -68,6 +71,7 @@ export default function NewsPage() {
       content: n.content || '',
       image: null,
     })
+    setModalOpen(true)
   }
 
   async function submit(e) {
@@ -92,7 +96,8 @@ export default function NewsPage() {
         throw new Error((await res.json().catch(() => ({}))).message || 'Save failed')
       }
 
-      startCreate()
+      setModalOpen(false)
+      setForm({ id: null, publishedAt: '', title: '', summary: '', content: '', image: null })
       await load()
     } catch (err) {
       if (String(err.message).includes('Unauthorized')) {
@@ -130,97 +135,86 @@ export default function NewsPage() {
         title="News"
         subtitle="Create and manage news posts."
         right={
-          <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="primary" size="sm" onClick={startCreate}>
+              Create
+            </Button>
+            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
+              Refresh
+            </Button>
+          </div>
         }
       />
 
       <ErrorBanner message={error} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <div className="border-b border-slate-800/60 px-5 py-4">
-            <div className="text-sm font-semibold text-slate-100">{isEditing ? `Edit post #${form.id}` : 'Create post'}</div>
-            <div className="mt-1 text-xs text-slate-400">Use summary for the preview card.</div>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={isEditing ? `Edit post #${form.id}` : 'Create post'}>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-300">Date</label>
+            <Input
+              type="date"
+              value={form.publishedAt}
+              onChange={(e) => setForm((p) => ({ ...p, publishedAt: e.target.value }))}
+            />
           </div>
-
-          <form onSubmit={submit} className="space-y-4 px-5 py-5">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-300">Date</label>
-              <Input
-                type="date"
-                value={form.publishedAt}
-                onChange={(e) => setForm((p) => ({ ...p, publishedAt: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-300">Title</label>
-              <Input
-                value={form.title}
-                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                placeholder="Post title"
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-300">Summary</label>
-              <Textarea
-                value={form.summary}
-                onChange={(e) => setForm((p) => ({ ...p, summary: e.target.value }))}
-                placeholder="Short preview text"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-300">Content</label>
-              <Textarea
-                className="min-h-[160px]"
-                value={form.content}
-                onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))}
-                placeholder="Full content"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="news-image" className="text-xs font-medium text-slate-300">
-                Image
-              </label>
-              <input
-                id="news-image"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setForm((p) => ({ ...p, image: e.target.files?.[0] || null }))}
-                className="block w-full text-sm text-slate-200 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-800/70 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-100 hover:file:bg-slate-800"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button type="submit" loading={saving}>
-                {isEditing ? 'Save changes' : 'Create'}
-              </Button>
-              {isEditing ? (
-                <Button type="button" variant="secondary" onClick={startCreate} disabled={saving}>
-                  Cancel
-                </Button>
-              ) : null}
-            </div>
-          </form>
-        </Card>
-
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-300">Title</label>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              placeholder="Post title"
+              required
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-300">Summary</label>
+            <Textarea
+              value={form.summary}
+              onChange={(e) => setForm((p) => ({ ...p, summary: e.target.value }))}
+              placeholder="Short preview text"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-300">Content</label>
+            <Textarea
+              className="min-h-[160px]"
+              value={form.content}
+              onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))}
+              placeholder="Full content"
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="news-image" className="text-xs font-medium text-slate-300">
+              Image
+            </label>
+            <input
+              id="news-image"
+              type="file"
+              name=''
+              accept="image/*"
+              onChange={(e) => setForm((p) => ({ ...p, image: e.target.files?.[0] || null }))}
+              className="  block w-full text-sm text-slate-200 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-800/70 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-100 hover:file:bg-slate-800"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="submit" loading={saving}>
+              {isEditing ? 'Save changes' : 'Create'}
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => setModalOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-1">
         <Card>
           <div className="flex items-center justify-between gap-3 border-b border-slate-800/60 px-5 py-4">
             <div>
               <div className="text-sm font-semibold text-slate-100">List</div>
               <div className="mt-1 text-xs text-slate-400">{items.length} items</div>
             </div>
-            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-              Refresh
-            </Button>
           </div>
-
           <div className="space-y-3 px-5 py-5">
             {loading ? (
               <div className="space-y-3">
@@ -242,7 +236,7 @@ export default function NewsPage() {
                       exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
                       transition={{ duration: 0.16, ease: 'easeOut' }}
                     >
-                      <div className="rounded-2xl border border-slate-800/60 bg-slate-950/20 p-4">
+                      <div className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0 flex-1">
                             {n.publishedAt ? <div className="text-xs text-slate-500">{n.publishedAt}</div> : null}
@@ -264,8 +258,7 @@ export default function NewsPage() {
                               </div>
                             ) : null}
                           </div>
-
-                          <div className="flex shrink-0 flex-col gap-2">
+                          <div className="flex shrink-0 flex-row gap-2">
                             <Button variant="secondary" size="sm" onClick={() => startEdit(n)}>
                               Edit
                             </Button>

@@ -1,4 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import Modal from '../components/ui/Modal'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiFetch } from '../api'
@@ -48,6 +49,7 @@ export default function ContactsPage() {
     address: '',
     mapEmbed: '',
   })
+  const [modalOpen, setModalOpen] = useState(false)
 
   const isEditing = useMemo(() => form.id != null, [form.id])
 
@@ -77,6 +79,7 @@ export default function ContactsPage() {
 
   function startCreate() {
     setForm({ id: null, phone1: '', phone2: '', email: '', address: '', mapEmbed: '' })
+    setModalOpen(true)
   }
 
   function startEdit(c) {
@@ -88,6 +91,7 @@ export default function ContactsPage() {
       address: c.address || '',
       mapEmbed: c.mapEmbed || '',
     })
+    setModalOpen(true)
   }
 
   async function submit(e) {
@@ -114,7 +118,8 @@ export default function ContactsPage() {
         throw new Error((await res.json().catch(() => ({}))).message || 'Save failed')
       }
 
-      startCreate()
+      setModalOpen(false)
+      setForm({ id: null, phone1: '', phone2: '', email: '', address: '', mapEmbed: '' })
       await load()
     } catch (err) {
       if (String(err.message).includes('Unauthorized')) {
@@ -150,106 +155,96 @@ export default function ContactsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Contacts"
-        subtitle="Manage contact information and map embed."
+        subtitle="Create and manage contact blocks."
         right={
-          <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="primary" size="sm" onClick={startCreate}>
+              Create Contact
+            </Button>
+            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
+              Refresh
+            </Button>
+          </div>
         }
       />
 
       <ErrorBanner message={error} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <div className="border-b border-slate-800/60 px-5 py-4">
-            <div className="text-sm font-semibold text-slate-100">
-              {isEditing ? `Edit contact block #${form.id}` : 'Create contact block'}
-            </div>
-            <div className="mt-1 text-xs text-slate-400">Map embed must be a Google Maps iframe.</div>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={isEditing ? `Edit contact block #${form.id}` : 'Create contact block'}>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-1">
+            <label htmlFor="contact-phone1" className="text-xs font-medium text-slate-300">
+              Phone 1
+            </label>
+            <Input
+              id="contact-phone1"
+              value={form.phone1}
+              onChange={(e) => setForm((p) => ({ ...p, phone1: e.target.value }))}
+              placeholder="+998 ..."
+              required
+            />
           </div>
-
-          <form onSubmit={submit} className="space-y-4 px-5 py-5">
-            <div className="space-y-1">
-              <label htmlFor="contact-phone1" className="text-xs font-medium text-slate-300">
-                Phone 1
-              </label>
-              <Input
-                id="contact-phone1"
-                value={form.phone1}
-                onChange={(e) => setForm((p) => ({ ...p, phone1: e.target.value }))}
-                placeholder="+998 ..."
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="contact-phone2" className="text-xs font-medium text-slate-300">
-                Phone 2 (optional)
-              </label>
-              <Input
-                id="contact-phone2"
-                value={form.phone2}
-                onChange={(e) => setForm((p) => ({ ...p, phone2: e.target.value }))}
-                placeholder="+998 ..."
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="contact-email" className="text-xs font-medium text-slate-300">
-                Email
-              </label>
-              <Input
-                id="contact-email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                placeholder="example@domain.com"
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="contact-address" className="text-xs font-medium text-slate-300">
-                Address
-              </label>
-              <Textarea
-                id="contact-address"
-                className="min-h-[120px]"
-                value={form.address}
-                onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
-                placeholder="Full address"
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="contact-map" className="text-xs font-medium text-slate-300">
-                Map Embed (iframe HTML)
-              </label>
-              <Textarea
-                id="contact-map"
-                className="min-h-[140px] font-mono"
-                value={form.mapEmbed}
-                onChange={(e) => setForm((p) => ({ ...p, mapEmbed: e.target.value }))}
-                placeholder="<iframe src=...></iframe>"
-                required
-              />
-              <div className="text-xs text-slate-500">Only https://www.google.com/maps embeds are accepted.</div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button type="submit" loading={saving}>
-                {isEditing ? 'Save changes' : 'Create'}
-              </Button>
-              {isEditing ? (
-                <Button type="button" variant="secondary" onClick={startCreate} disabled={saving}>
-                  Cancel
-                </Button>
-              ) : null}
-            </div>
-          </form>
-        </Card>
+          <div className="space-y-1">
+            <label htmlFor="contact-phone2" className="text-xs font-medium text-slate-300">
+              Phone 2 (optional)
+            </label>
+            <Input
+              id="contact-phone2"
+              value={form.phone2}
+              onChange={(e) => setForm((p) => ({ ...p, phone2: e.target.value }))}
+              placeholder="+998 ..."
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="contact-email" className="text-xs font-medium text-slate-300">
+              Email
+            </label>
+            <Input
+              id="contact-email"
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+              placeholder="example@domain.com"
+              required
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="contact-address" className="text-xs font-medium text-slate-300">
+              Address
+            </label>
+            <Textarea
+              id="contact-address"
+              className="min-h-[120px]"
+              value={form.address}
+              onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
+              placeholder="Full address"
+              required
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="contact-map" className="text-xs font-medium text-slate-300">
+              Map Embed (iframe HTML)
+            </label>
+            <Textarea
+              id="contact-map"
+              className="min-h-[140px] font-mono"
+              value={form.mapEmbed}
+              onChange={(e) => setForm((p) => ({ ...p, mapEmbed: e.target.value }))}
+              placeholder="<iframe src=...></iframe>"
+              required
+            />
+            <div className="text-xs text-slate-500">Only https://www.google.com/maps embeds are accepted.</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="submit" loading={saving}>
+              {isEditing ? 'Save changes' : 'Create'}
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => setModalOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
         <Card>
           <div className="flex items-center justify-between gap-3 border-b border-slate-800/60 px-5 py-4">
@@ -257,11 +252,7 @@ export default function ContactsPage() {
               <div className="text-sm font-semibold text-slate-100">List</div>
               <div className="mt-1 text-xs text-slate-400">{items.length} items</div>
             </div>
-            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-              Refresh
-            </Button>
           </div>
-
           <div className="space-y-3 px-5 py-5">
             {loading ? (
               <div className="space-y-3">
@@ -283,7 +274,7 @@ export default function ContactsPage() {
                       exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
                       transition={{ duration: 0.16, ease: 'easeOut' }}
                     >
-                      <div className="rounded-2xl border border-slate-800/60 bg-slate-950/20 p-4">
+                      <div className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0 flex-1">
                             <div className="text-xs text-slate-500">#{c.id}</div>
@@ -291,7 +282,6 @@ export default function ContactsPage() {
                             <div className="mt-2 text-sm text-slate-300">{c.phone1}</div>
                             {c.phone2 ? <div className="text-sm text-slate-300">{c.phone2}</div> : null}
                             <div className="mt-3 text-sm text-slate-300 whitespace-pre-wrap">{c.address}</div>
-
                             {c.mapEmbed ? (() => {
                               const src = getSafeMapSrc(c.mapEmbed)
                               if (!src) {
@@ -317,8 +307,7 @@ export default function ContactsPage() {
                               )
                             })() : null}
                           </div>
-
-                          <div className="flex shrink-0 flex-col gap-2">
+                          <div className="flex shrink-0 flex-row gap-2">
                             <Button size="sm" variant="secondary" onClick={() => startEdit(c)}>
                               Edit
                             </Button>
@@ -336,6 +325,5 @@ export default function ContactsPage() {
           </div>
         </Card>
       </div>
-    </div>
   )
 }

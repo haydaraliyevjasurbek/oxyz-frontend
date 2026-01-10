@@ -1,4 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import Modal from '../components/ui/Modal'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiFetch, apiUrl } from '../api'
@@ -26,6 +27,7 @@ export default function ServicesPage() {
     description: '',
     image: null,
   })
+  const [modalOpen, setModalOpen] = useState(false)
 
   const isEditing = useMemo(() => form.id != null, [form.id])
 
@@ -54,10 +56,12 @@ export default function ServicesPage() {
 
   function startCreate() {
     setForm({ id: null, title: '', description: '', image: null })
+    setModalOpen(true)
   }
 
   function startEdit(s) {
     setForm({ id: s.id, title: s.title || '', description: s.description || '', image: null })
+    setModalOpen(true)
   }
 
   async function submit(e) {
@@ -79,7 +83,8 @@ export default function ServicesPage() {
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || 'Create failed')
       }
 
-      startCreate()
+      setModalOpen(false)
+      setForm({ id: null, title: '', description: '', image: null })
       await load()
     } catch (err) {
       if (String(err.message).includes('Unauthorized')) {
@@ -117,80 +122,68 @@ export default function ServicesPage() {
         title="Services"
         subtitle="Create, update, and manage services."
         right={
-          <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="primary" size="sm" onClick={startCreate}>
+              Create Service
+            </Button>
+            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
+              Refresh
+            </Button>
+          </div>
         }
       />
 
       <ErrorBanner message={error} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <div className="border-b border-slate-800/60 px-5 py-4">
-            <div className="text-sm font-semibold text-slate-100">
-              {isEditing ? `Edit service #${form.id}` : 'Create service'}
-            </div>
-            <div className="mt-1 text-xs text-slate-400">Images are optional (max 10MB).</div>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={isEditing ? `Edit service #${form.id}` : 'Create service'}>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-300">Title</label>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              placeholder="Service title"
+              required
+            />
           </div>
-
-          <form onSubmit={submit} className="space-y-4 px-5 py-5">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-300">Title</label>
-              <Input
-                value={form.title}
-                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                placeholder="Service title"
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-300">Description</label>
-              <Textarea
-                value={form.description}
-                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                placeholder="Short description"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="service-image" className="text-xs font-medium text-slate-300">
-                Image
-              </label>
-              <input
-                id="service-image"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setForm((p) => ({ ...p, image: e.target.files?.[0] || null }))}
-                className="block w-full text-sm text-slate-200 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-800/70 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-100 hover:file:bg-slate-800"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button type="submit" loading={saving}>
-                {isEditing ? 'Save changes' : 'Create'}
-              </Button>
-              {isEditing ? (
-                <Button type="button" variant="secondary" onClick={startCreate} disabled={saving}>
-                  Cancel
-                </Button>
-              ) : null}
-            </div>
-          </form>
-        </Card>
-
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-300">Description</label>
+            <Textarea
+              value={form.description}
+              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              placeholder="Short description"
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="service-image" className="text-xs font-medium text-slate-300">
+              Image
+            </label>
+            <input
+              id="service-image"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setForm((p) => ({ ...p, image: e.target.files?.[0] || null }))}
+              className="block w-full text-sm text-slate-200 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-800/70 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-100 hover:file:bg-slate-800"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="submit" loading={saving}>
+              {isEditing ? 'Save changes' : 'Create'}
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => setModalOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-1">
         <Card>
           <div className="flex items-center justify-between gap-3 border-b border-slate-800/60 px-5 py-4">
             <div>
               <div className="text-sm font-semibold text-slate-100">List</div>
               <div className="mt-1 text-xs text-slate-400">{services.length} items</div>
             </div>
-            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-              Refresh
-            </Button>
-          </div>
-
+          </div>  
           <div className="space-y-3 px-5 py-5">
             {loading ? (
               <div className="space-y-3">
@@ -212,7 +205,7 @@ export default function ServicesPage() {
                       exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
                       transition={{ duration: 0.16, ease: 'easeOut' }}
                     >
-                      <div className="rounded-2xl border border-slate-800/60 bg-slate-950/20 p-4">
+                      <div className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
                             <div className="text-sm font-semibold text-slate-100">{s.title}</div>
@@ -236,8 +229,7 @@ export default function ServicesPage() {
                               </div>
                             ) : null}
                           </div>
-
-                          <div className="flex shrink-0 flex-col gap-2">
+                          <div className="flex shrink-0 flex-row gap-2">
                             <Button variant="secondary" size="sm" onClick={() => startEdit(s)}>
                               Edit
                             </Button>

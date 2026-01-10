@@ -1,4 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import Modal from '../components/ui/Modal'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiFetch } from '../api'
@@ -54,8 +55,10 @@ export default function ProcessStepsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const [modalOpen, setModalOpen] = useState(false)
   function startCreate() {
     setForm({ id: null, order: 1, title: '', description: '', details: '' })
+    setModalOpen(true)
   }
 
   function startEdit(s) {
@@ -66,6 +69,7 @@ export default function ProcessStepsPage() {
       description: s.description || '',
       details: s.details || '',
     })
+    setModalOpen(true)
   }
 
   async function submit(e) {
@@ -91,7 +95,8 @@ export default function ProcessStepsPage() {
         throw new Error((await res.json().catch(() => ({}))).message || 'Save failed')
       }
 
-      startCreate()
+      setModalOpen(false)
+      setForm({ id: null, order: 1, title: '', description: '', details: '' })
       await load()
     } catch (err) {
       if (String(err.message).includes('Unauthorized')) {
@@ -129,102 +134,88 @@ export default function ProcessStepsPage() {
         title="Process Steps"
         subtitle="Create and manage process steps."
         right={
-          <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="primary" size="sm" onClick={startCreate}>
+              Create Step
+            </Button>
+            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
+              Refresh
+            </Button>
+          </div>
         }
       />
 
       <ErrorBanner message={error} />
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <div className="border-b border-slate-800/60 px-5 py-4">
-            <div className="text-sm font-semibold text-slate-100">
-              {isEditing ? `Edit step #${form.id}` : 'Create step'}
-            </div>
-            <div className="mt-1 text-xs text-slate-400">Order starts from 1. Details are optional.</div>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={isEditing ? `Edit step #${form.id}` : 'Create step'}>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-1">
+            <label htmlFor="step-order" className="text-xs font-medium text-slate-300">
+              Order
+            </label>
+            <Input
+              id="step-order"
+              type="number"
+              min={1}
+              value={form.order}
+              onChange={(e) => setForm((p) => ({ ...p, order: e.target.value }))}
+              required
+            />
           </div>
-
-          <form onSubmit={submit} className="space-y-4 px-5 py-5">
-            <div className="space-y-1">
-              <label htmlFor="step-order" className="text-xs font-medium text-slate-300">
-                Order
-              </label>
-              <Input
-                id="step-order"
-                type="number"
-                min={1}
-                value={form.order}
-                onChange={(e) => setForm((p) => ({ ...p, order: e.target.value }))}
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="step-title" className="text-xs font-medium text-slate-300">
-                Title
-              </label>
-              <Input
-                id="step-title"
-                value={form.title}
-                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                placeholder="Step title"
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="step-description" className="text-xs font-medium text-slate-300">
-                Description
-              </label>
-              <Textarea
-                id="step-description"
-                className="min-h-[120px]"
-                value={form.description}
-                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                placeholder="What happens in this step?"
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="step-details" className="text-xs font-medium text-slate-300">
-                Details (optional)
-              </label>
-              <Textarea
-                id="step-details"
-                className="min-h-[140px]"
-                value={form.details}
-                onChange={(e) => setForm((p) => ({ ...p, details: e.target.value }))}
-                placeholder="Additional details"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button type="submit" loading={saving}>
-                {isEditing ? 'Save changes' : 'Create'}
-              </Button>
-              {isEditing ? (
-                <Button type="button" variant="secondary" onClick={startCreate} disabled={saving}>
-                  Cancel
-                </Button>
-              ) : null}
-            </div>
-          </form>
-        </Card>
-
+          <div className="space-y-1">
+            <label htmlFor="step-title" className="text-xs font-medium text-slate-300">
+              Title
+            </label>
+            <Input
+              id="step-title"
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              placeholder="Step title"
+              required
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="step-description" className="text-xs font-medium text-slate-300">
+              Description
+            </label>
+            <Textarea
+              id="step-description"
+              className="min-h-[120px]"
+              value={form.description}
+              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              placeholder="What happens in this step?"
+              required
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="step-details" className="text-xs font-medium text-slate-300">
+              Details (optional)
+            </label>
+            <Textarea
+              id="step-details"
+              className="min-h-[140px]"
+              value={form.details}
+              onChange={(e) => setForm((p) => ({ ...p, details: e.target.value }))}
+              placeholder="Additional details"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="submit" loading={saving}>
+              {isEditing ? 'Save changes' : 'Create'}
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => setModalOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-1">
         <Card>
           <div className="flex items-center justify-between gap-3 border-b border-slate-800/60 px-5 py-4">
             <div>
               <div className="text-sm font-semibold text-slate-100">List</div>
               <div className="mt-1 text-xs text-slate-400">{steps.length} items</div>
             </div>
-            <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-              Refresh
-            </Button>
           </div>
-
           <div className="space-y-3 px-5 py-5">
             {loading ? (
               <div className="space-y-3">
@@ -246,7 +237,7 @@ export default function ProcessStepsPage() {
                       exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
                       transition={{ duration: 0.16, ease: 'easeOut' }}
                     >
-                      <div className="rounded-2xl border border-slate-800/60 bg-slate-950/20 p-4">
+                      <div className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
                             <div className="text-xs text-slate-500">#{s.order}</div>
@@ -258,8 +249,7 @@ export default function ProcessStepsPage() {
                               </div>
                             ) : null}
                           </div>
-
-                          <div className="flex shrink-0 flex-col gap-2">
+                          <div className="flex shrink-0 flex-row gap-2">
                             <Button size="sm" variant="secondary" onClick={() => startEdit(s)}>
                               Edit
                             </Button>
