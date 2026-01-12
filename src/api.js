@@ -192,29 +192,25 @@ function getApiBase() {
   return base.replace(/\/+$/, '')
 }
 
-function stripApiPrefix(path) {
-  // backend routes are like /auth, /services, /stats...
-  // in dev we use Vite proxy via /api/*, so keep compatibility.
-  if (path.startsWith('/api/')) return path.slice(4)
-  if (path === '/api') return '/'
-  return path
-}
+
+// stripApiPrefix funksiyasi olib tashlandi, har doim /api prefiksi ishlatiladi
+
 
 export function apiUrl(path) {
-  const apiBase = getApiBase()
-  const raw = typeof path === 'string' ? path : ''
+  const apiBase = getApiBase();
+  const raw = typeof path === 'string' ? path : '';
 
   // absolute URL passthrough
-  if (/^https?:\/\//i.test(raw)) return raw
+  if (/^https?:\/\//i.test(raw)) return raw;
 
-  const normalized = raw.startsWith('/') ? raw : `/${raw}`
+  // har doim /api bilan boshlansin
+  const normalized = raw.startsWith('/') ? raw : `/${raw}`;
+  const withApi = normalized.startsWith('/api') ? normalized : `/api${normalized}`;
 
   if (apiBase) {
-    return `${apiBase}${stripApiPrefix(normalized)}`
+    return `${apiBase}${withApi}`;
   }
-
-  // dev default: Vite proxy expects /api/*
-  return normalized.startsWith('/api/') ? normalized : `/api${normalized}`
+  return withApi;
 }
 
 export async function apiFetch(path, options = {}) {
