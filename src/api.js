@@ -180,11 +180,34 @@ export const adminDeleteQuoteRequest = (id) => apiFetch(`/admin/quote-requests/$
 });
 
 // --- AUTH ---
-export const login = (data) => apiFetch('/auth/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data),
-});
+// Login endpoint uchun to'g'ri URL (api prefiksiz)
+export const login = (data) => {
+  const apiBase = getApiBase();
+  const url = apiBase ? `${apiBase}/auth/login` : '/auth/login';
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+};
+
+// Login tekshirish va yo'naltirish uchun yordamchi funksiya
+export function requireAuthOrRedirect() {
+  const token = getToken();
+  if (!token) {
+    window.location.href = '/login';
+    return false;
+  }
+  return true;
+}
+
+// Login bo'lsa, admin sahifaga yo'naltirish
+export function redirectToAdminIfLoggedIn() {
+  const token = getToken();
+  if (token) {
+    window.location.href = 'https://oxyz-frontend.netlify.app/admin/services';
+  }
+}
 
 function getApiBase() {
   const base = import.meta.env.VITE_API_URL
@@ -203,14 +226,20 @@ export function apiUrl(path) {
   // absolute URL passthrough
   if (/^https?:\/\//i.test(raw)) return raw;
 
-  // har doim /api bilan boshlansin
-  const normalized = raw.startsWith('/') ? raw : `/${raw}`;
-  const withApi = normalized.startsWith('/api') ? normalized : `/api${normalized}`;
-
-  if (apiBase) {
-    return `${apiBase}${withApi}`;
+  let normalized = raw.startsWith('/') ? raw : `/${raw}`;
+  // Faqat login uchun /auth prefiksi, /api qo'shilmasin
+  if (normalized === '/auth/login' || normalized.startsWith('/auth/')) {
+    return apiBase ? `${apiBase}${normalized}` : normalized;
   }
-  return withApi;
+  // admin uchun /admin bilan boshlansa, to'g'ridan-to'g'ri yuboriladi
+  if (normalized.startsWith('/admin/')) {
+    return apiBase ? `${apiBase}${normalized}` : normalized;
+  }
+  // public uchun har doim /api bilan boshlansin
+  if (!normalized.startsWith('/api/')) {
+    normalized = `/api${normalized}`;
+  }
+  return apiBase ? `${apiBase}${normalized}` : normalized;
 }
 
 export async function apiFetch(path, options = {}) {
