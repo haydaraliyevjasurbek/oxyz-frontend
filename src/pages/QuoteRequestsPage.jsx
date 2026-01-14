@@ -38,7 +38,7 @@ export default function QuoteRequestsPage() {
     setError('')
 
     try {
-      const res = await apiFetch('/quote-requests')
+      const res = await apiFetch('admin/quote-requests')
       const data = await res.json()
       setItems(Array.isArray(data) ? data : [])
     } catch (err) {

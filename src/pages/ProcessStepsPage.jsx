@@ -36,7 +36,7 @@ export default function ProcessStepsPage() {
     setError('')
 
     try {
-      const res = await apiFetch('/process-steps')
+      const res = await apiFetch('/admin/process-steps')
       const data = await res.json()
       setSteps(Array.isArray(data) ? data : [])
     } catch (err) {
