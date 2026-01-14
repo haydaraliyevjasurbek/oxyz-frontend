@@ -88,7 +88,7 @@ export default function FaqsPage() {
         answer: form.answer,
       }
 
-      const res = await apiFetch(isEditing ? `/faqs/${form.id}` : '/faqs', {
+      const res = await apiFetch(isEditing ? `/admin/faqs/${form.id}` : '/admin/faqs', {
         method: isEditing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -118,7 +118,7 @@ export default function FaqsPage() {
     setError('')
 
     try {
-      const res = await apiFetch(`/faqs/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/admin/faqs/${id}`, { method: 'DELETE' })
       if (!res.ok && res.status !== 204) {
         throw new Error((await res.json().catch(() => ({}))).message || 'Delete failed')
       }

@@ -84,7 +84,7 @@ export default function StatsPage() {
       fd.set('label', form.label)
       if (form.icon) fd.set('icon', form.icon)
 
-      const res = await apiFetch(isEditing ? `/stats/${form.id}` : '/stats', {
+      const res = await apiFetch(isEditing ? `/admin/stats/${form.id}` : '/admin/stats', {
         method: isEditing ? 'PUT' : 'POST',
         body: fd,
       })
@@ -112,7 +112,7 @@ export default function StatsPage() {
     setError('')
 
     try {
-      const res = await apiFetch(`/stats/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/admin/stats/${id}`, { method: 'DELETE' })
       if (!res.ok && res.status !== 204) {
         throw new Error((await res.json().catch(() => ({}))).message || 'Delete failed')
       }

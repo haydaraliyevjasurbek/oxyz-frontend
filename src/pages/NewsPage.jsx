@@ -87,7 +87,7 @@ export default function NewsPage() {
       fd.set('content', form.content)
       if (form.image) fd.set('image', form.image)
 
-      const res = await apiFetch(isEditing ? `/news/${form.id}` : '/news', {
+      const res = await apiFetch(isEditing ? `/admin/news/${form.id}` : '/admin/news', {
         method: isEditing ? 'PUT' : 'POST',
         body: fd,
       })
@@ -115,7 +115,7 @@ export default function NewsPage() {
     setError('')
 
     try {
-      const res = await apiFetch(`/news/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/admin/news/${id}`, { method: 'DELETE' })
       if (!res.ok && res.status !== 204) {
         throw new Error((await res.json().catch(() => ({}))).message || 'Delete failed')
       }

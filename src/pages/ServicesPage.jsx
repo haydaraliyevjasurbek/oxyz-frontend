@@ -76,10 +76,10 @@ export default function ServicesPage() {
       if (form.image) fd.set('image', form.image)
 
       if (isEditing) {
-        const res = await apiFetch(`/services/${form.id}`, { method: 'PUT', body: fd })
+        const res = await apiFetch(`/admin/services/${form.id}`, { method: 'PUT', body: fd })
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || 'Update failed')
       } else {
-        const res = await apiFetch('/services', { method: 'POST', body: fd })
+        const res = await apiFetch('/admin/services', { method: 'POST', body: fd })
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || 'Create failed')
       }
 
@@ -102,7 +102,7 @@ export default function ServicesPage() {
     setError('')
 
     try {
-      const res = await apiFetch(`/services/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/admin/services/${id}`, { method: 'DELETE' })
       if (!res.ok && res.status !== 204) {
         throw new Error((await res.json().catch(() => ({}))).message || 'Delete failed')
       }

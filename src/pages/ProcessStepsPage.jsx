@@ -85,7 +85,7 @@ export default function ProcessStepsPage() {
         details: form.details || null,
       }
 
-      const res = await apiFetch(isEditing ? `/process-steps/${form.id}` : '/process-steps', {
+      const res = await apiFetch(isEditing ? `/admin/process-steps/${form.id}` : '/admin/process-steps', {
         method: isEditing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -114,7 +114,7 @@ export default function ProcessStepsPage() {
     setError('')
 
     try {
-      const res = await apiFetch(`/process-steps/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/admin/process-steps/${id}`, { method: 'DELETE' })
       if (!res.ok && res.status !== 204) {
         throw new Error((await res.json().catch(() => ({}))).message || 'Delete failed')
       }

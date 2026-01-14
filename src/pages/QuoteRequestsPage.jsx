@@ -92,7 +92,7 @@ export default function QuoteRequestsPage() {
         phone: form.phone,
       }
 
-      const res = await apiFetch(isEditing ? `/quote-requests/${form.id}` : '/quote-requests', {
+      const res = await apiFetch(isEditing ? `/admin/quote-requests/${form.id}` : '/admin/quote-requests', {
         method: isEditing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -121,7 +121,7 @@ export default function QuoteRequestsPage() {
     setError('')
 
     try {
-      const res = await apiFetch(`/quote-requests/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/admin/quote-requests/${id}`, { method: 'DELETE' })
       if (!res.ok && res.status !== 204) {
         throw new Error((await res.json().catch(() => ({}))).message || 'Delete failed')
       }

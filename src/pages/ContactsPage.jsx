@@ -108,7 +108,7 @@ export default function ContactsPage() {
         mapEmbed: form.mapEmbed,
       }
 
-      const res = await apiFetch(isEditing ? `/contacts/${form.id}` : '/contacts', {
+      const res = await apiFetch(isEditing ? `/admin/contacts/${form.id}` : '/admin/contacts', {
         method: isEditing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -137,7 +137,7 @@ export default function ContactsPage() {
     setError('')
 
     try {
-      const res = await apiFetch(`/contacts/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/admin/contacts/${id}`, { method: 'DELETE' })
       if (!res.ok && res.status !== 204) {
         throw new Error((await res.json().catch(() => ({}))).message || 'Delete failed')
       }
